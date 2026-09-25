@@ -71,6 +71,92 @@ function setupSliders() {
 }
 
 
+class NeuralNetworkControls {
+    constructor(neuralNetwork, controlsElement) {
+        this.neuralNetwork = neuralNetwork;
+        this.controlsElement = controlsElement;
+
+        this.createSliders();
+    }
+
+    createSlider(text) {
+        const label = document.createElement("label");
+        label.textContent = text;
+
+        const slider = document.createElement("input");
+        slider.type = "range";
+        slider.min = -30;
+        slider.max = 30;
+        slider.value = 0;
+        slider.classList.add("slider");
+        slider.innerHTML = text;
+
+        label.appendChild(slider);
+        return label;
+    }
+
+    createNeuronElement() {
+        const neuronElement = document.createElement("div");
+        neuronElement.classList.add("neuron");
+        neuronElement.innerHTML = "NEURON";
+        return neuronElement;
+    }
+
+    createSlidersForNeuron(neuron) {
+        const neuronElement = this.createNeuronElement();
+
+        for (let i = 0; i < neuron.weights.length; i++) {
+            const weightSlider = this.createSlider("WEIGHT");
+            
+            weightSlider.addEventListener("input", () => {
+                const sliderValue = Number(weightSlider.value);
+                neuron.weights[i] =  sliderValue;
+            })
+
+            neuronElement.appendChild(weightSlider);
+        }
+
+        const biasSlider = this.createSlider("BIAS");
+
+        biasSlider.addEventListener("input", () => {
+            const sliderValue = Number(biasSlider.value);
+            neuron.bias = sliderValue;
+        })
+
+        neuronElement.appendChild(biasSlider);
+
+        return neuronElement;
+    }
+
+    createLayerElement() {
+        const layerElement = document.createElement("div");
+        layerElement.classList.add("layer");
+        layerElement.innerHTML = "LAYER";
+
+        return layerElement;
+    }
+
+    createSliders() {
+
+        for (let i = 0; i < this.neuralNetwork.layers.length; i++) {
+
+            const thisLayer = this.neuralNetwork.layers[i];
+            const layerElement = this.createLayerElement();
+
+            for (let j = 0; j < thisLayer.neurons.length; j++) {
+
+                const thisNeuron = thisLayer.neurons[j];
+                const neuronElement = this.createSlidersForNeuron(thisNeuron);
+
+                layerElement.appendChild(neuronElement);
+
+            }
+
+            this.controlsElement.appendChild(layerElement);
+
+        }
+    }
+}
 
 
 class NeuralNetwork {
@@ -91,6 +177,7 @@ class NeuralNetwork {
 
         return output;
     }
+
 
 
 }
@@ -167,3 +254,6 @@ const outputLayer = new Layer(
 
 const neuralNetwork = new NeuralNetwork([hiddenLayer, outputLayer]);
 console.log(neuralNetwork.calculateOutputs(inputs));
+const controls = document.getElementById("controls");
+console.log(controls);
+const neuralNetworkControls = new NeuralNetworkControls(neuralNetwork, controls);

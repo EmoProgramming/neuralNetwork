@@ -21,12 +21,28 @@ main {
     align-items: center;
 }
 
-.inputs {
-    display: flex;
-    flex-direction: column;
 
+input {
+    width: 400px;
 }
 
-.inputs input {
-    width: 400px;
+label {
+    display: flex;
+    flex-direction: column;
+}
+
+#controls {
+    display: flex;
+    flex-direction: row;
+}
+
+.layer {
+    display: flex;
+    flex-direction: column;
+}
+
+.neuron {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
 }

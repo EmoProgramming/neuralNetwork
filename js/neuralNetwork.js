@@ -41,6 +41,7 @@ export class NeuralNetworkVisualization {
 
                 const dataVisualization = this.main.dataset.visualization;
 
+                console.log(output1, output2);
                 if (dataVisualization === "classification") {
 
                     if (output1 > output2) {
@@ -187,18 +188,34 @@ export class NeuralNetwork {
     calculateOutputs(inputs) {
 
         let currentInputs = inputs;
-        let nextLayer, output;
+        let nextLayer, outputs;
         
         for (let i = 0; i < this.layers.length; i++) {
             nextLayer = this.layers[i];
-            output = nextLayer.calculateOutputs(currentInputs);
-            currentInputs = output;
+            outputs = nextLayer.calculateOutputs(currentInputs);
+            currentInputs = outputs;
         }
 
-        return output;
+        return outputs;
     }
 
+    loss(value, target) {
+        const error = target - value;
+        return error * error;
+    }
 
+    lossOfOutput(output, target) {
+        
+        let lossValue = 0;
+
+        for (let i = 0; i < output.length; i++) {
+            lossValue += this.loss(output[i], target[i]);
+        }
+
+        return lossValue;
+    }
+
+    
 
 }
 

@@ -1,137 +1,157 @@
-const main = document.querySelector("main");
+export class NeuralNetworkVisualization {        
+    constructor(neuralNetwork) {
+        this.main = document.querySelector("main");
+        this.neuralNetwork = neuralNetwork;
 
-function relu(x) {
-    return Math.max(0, x);
-}
-
-function addCircle(x, y, color) {
-    const circle = document.createElement("div");
-    circle.classList.add("circle");
-    circle.style.position = "absolute";
-    circle.style.top = y + "px";
-    circle.style.left = x + "px";
-    circle.style.backgroundColor = color;
-
-    main.appendChild(circle);
-}
-
-function removeCircles() {
-    const circles = main.querySelectorAll(".circle");
-
-    for (const circle of circles) {
-        circle.remove();
+        this.fillCircles();
     }
-}
 
-function fillCircles(weights) {
+    addCircle(x, y, color) {
+        const circle = document.createElement("div");
+        circle.classList.add("circle");
+        circle.style.position = "absolute";
+        circle.style.top = y + "px";
+        circle.style.left = x + "px";
+        circle.style.backgroundColor = color;
 
-    const GAP = 30;
+        this.main.appendChild(circle);
+    }
 
-    const centerX = main.offsetWidth / 2;
-    const centerY = main.offsetHeight / 2;
+    removeCircles() {
+        const circles = this.main.querySelectorAll(".circle");
 
-    for (let y = -centerY; y < centerY; y += GAP) {
-        for (let x = -centerX; x < centerX; x += GAP) {
-
-            let color;
-
-            [output1, output2] = [1, 2];
-
-            if (output1 > output2) {
-                color = "red";
-            } else {
-                color = "blue";
-            }
-
-            // posun matematických súradníc do obrazovkových
-            let screenX = x + centerX;
-            let screenY = y + centerY;
-
-            addCircle(screenX, screenY, color);
+        for (const circle of circles) {
+            circle.remove();
         }
     }
-}
 
-function setupSliders() {
-    for (let i = 0; i < sliders.length; i++) {
-        const sliderId = sliders[i];
-        const sliderElement = document.getElementById(sliderId);
-        sliderElement.value = 0;
+    fillCircles() {
 
-        sliderElement.addEventListener("input", () => {
-            slidersValues[i] = Number(sliderElement.value);
-            //console.log(slidersValues);
-            let weights = getWeights();
-            removeCircles();
-            fillCircles(weights);
-        });
+        const GAP = 10;
+
+        const centerX = this.main.offsetWidth / 2;
+        const centerY = this.main.offsetHeight / 2;
+
+        for (let y = -centerY; y < centerY; y += GAP) {
+            for (let x = -centerX; x < centerX; x += GAP) {
+
+                let color, output1, output2;
+
+                [output1, output2] = this.neuralNetwork.calculateOutputs([x, y]);
+
+                const dataVisualization = this.main.dataset.visualization;
+
+                if (dataVisualization === "classification") {
+
+                    if (output1 > output2) {
+                        color = "red";
+                    } else {
+                        color = "blue";
+                    }
+
+                } else if (dataVisualization === "output1") {
+                    console.log("AHOJ");
+
+                    const brightness = Math.min(output1 * 20, 255);
+                    color = `rgb(${brightness}, 0, 0)`;
+
+                } else if (dataVisualization === "output2") {
+
+                    const brightness = Math.min(output2 * 20, 255);
+                    color = `rgb(${brightness}, 0, 0)`;
+                }
+
+                // posun matematických súradníc do obrazovkových
+                let screenX = x + centerX;
+                let screenY = y + centerY;
+
+                this.addCircle(screenX, screenY, color);
+            }
+        }
     }
 
-    
+    update() {
+        this.removeCircles();
+        this.fillCircles();
+    }
+
 }
 
 
-class NeuralNetworkControls {
-    constructor(neuralNetwork, controlsElement) {
+export class NeuralNetworkControls {
+    constructor(neuralNetwork, controlsElement, neuralNetworkVisualization) {
         this.neuralNetwork = neuralNetwork;
         this.controlsElement = controlsElement;
+
+        this.neuralNetworkVisualization = neuralNetworkVisualization;
 
         this.createSliders();
     }
 
-    createSlider(text) {
+    createSlider(text, value) {
         const label = document.createElement("label");
-        label.textContent = text;
+
+        const valueElement = document.createElement("span");
+        valueElement.textContent = `${text}: ${value}`;
 
         const slider = document.createElement("input");
         slider.type = "range";
         slider.min = -30;
         slider.max = 30;
-        slider.value = 0;
+        slider.value = value;
         slider.classList.add("slider");
-        slider.innerHTML = text;
 
+        slider.addEventListener("input", () => {
+            valueElement.textContent = `${text}: ${slider.value}`;
+        });
+
+        label.appendChild(valueElement);
         label.appendChild(slider);
+
         return label;
     }
 
-    createNeuronElement() {
+    createNeuronElement(index) {
         const neuronElement = document.createElement("div");
         neuronElement.classList.add("neuron");
-        neuronElement.innerHTML = "NEURON";
+        neuronElement.innerHTML = "NEURON " + index;
         return neuronElement;
     }
 
-    createSlidersForNeuron(neuron) {
-        const neuronElement = this.createNeuronElement();
+    createSlidersForNeuron(neuron, index) {
+        const neuronElement = this.createNeuronElement(index);
 
         for (let i = 0; i < neuron.weights.length; i++) {
-            const weightSlider = this.createSlider("WEIGHT");
+            const weightSlider = this.createSlider(`WEIGHT ${i}`, neuron.weights[i]);
+            const slider = weightSlider.querySelector("input");
             
-            weightSlider.addEventListener("input", () => {
-                const sliderValue = Number(weightSlider.value);
+            slider.addEventListener("input", () => {
+                const sliderValue = Number(slider.value);
                 neuron.weights[i] =  sliderValue;
+                this.neuralNetworkVisualization.update();
             })
 
             neuronElement.appendChild(weightSlider);
         }
 
-        const biasSlider = this.createSlider("BIAS");
+        const biasSlider = this.createSlider(`BIAS`, neuron.bias);
 
-        biasSlider.addEventListener("input", () => {
-            const sliderValue = Number(biasSlider.value);
-            neuron.bias = sliderValue;
-        })
+        const slider = biasSlider.querySelector("input");
+
+        slider.addEventListener("input", () => {
+            neuron.bias = Number(slider.value);
+            this.neuralNetworkVisualization.update();
+        });
 
         neuronElement.appendChild(biasSlider);
 
         return neuronElement;
     }
 
-    createLayerElement() {
+    createLayerElement(index) {
         const layerElement = document.createElement("div");
         layerElement.classList.add("layer");
-        layerElement.innerHTML = "LAYER";
+        layerElement.innerHTML = "LAYER " + index;
 
         return layerElement;
     }
@@ -141,12 +161,12 @@ class NeuralNetworkControls {
         for (let i = 0; i < this.neuralNetwork.layers.length; i++) {
 
             const thisLayer = this.neuralNetwork.layers[i];
-            const layerElement = this.createLayerElement();
+            const layerElement = this.createLayerElement(i);
 
             for (let j = 0; j < thisLayer.neurons.length; j++) {
 
                 const thisNeuron = thisLayer.neurons[j];
-                const neuronElement = this.createSlidersForNeuron(thisNeuron);
+                const neuronElement = this.createSlidersForNeuron(thisNeuron, j);
 
                 layerElement.appendChild(neuronElement);
 
@@ -159,7 +179,7 @@ class NeuralNetworkControls {
 }
 
 
-class NeuralNetwork {
+export class NeuralNetwork {
     constructor(layers) {
         this.layers = layers;
     }
@@ -182,7 +202,7 @@ class NeuralNetwork {
 
 }
 
-class Layer {
+export class Layer {
     constructor(weights, biases) {
         this.weights = weights;
         this.biases = biases;
@@ -215,12 +235,15 @@ class Layer {
     }
 }
 
-class Neuron {
+export class Neuron {
     constructor(weights, bias) {
         this.weights = weights;
         this.bias = bias;
     }
 
+    relu(x) {
+        return Math.max(0, x);
+    }
     
     calculateOutput(inputs) {
         let output = this.bias; 
@@ -229,12 +252,14 @@ class Neuron {
             output += inputs[i] * this.weights[i];
         }
 
-        return relu(output);
+        return this.relu(output);
     }
+
+
 
 }
 
-
+/*
 let inputs = [2, 1];
 
 const hiddenLayer = new Layer(
@@ -253,7 +278,11 @@ const outputLayer = new Layer(
 );
 
 const neuralNetwork = new NeuralNetwork([hiddenLayer, outputLayer]);
-console.log(neuralNetwork.calculateOutputs(inputs));
+
+const neuralNetworkVisualization = new NeuralNetworkVisualization(neuralNetwork);
+
 const controls = document.getElementById("controls");
-console.log(controls);
-const neuralNetworkControls = new NeuralNetworkControls(neuralNetwork, controls);
+const neuralNetworkControls = new NeuralNetworkControls(neuralNetwork, controls, neuralNetworkVisualization);
+
+
+*/

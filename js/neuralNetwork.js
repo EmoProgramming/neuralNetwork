@@ -181,8 +181,69 @@ export class NeuralNetworkControls {
 
 
 export class NeuralNetwork {
-    constructor(layers) {
-        this.layers = layers;
+    constructor(layerSizes) {
+        this.layers = [];
+
+        this.weights = this.createRandomWeights(layerSizes);
+        this.biases = this.createRandomBiases(layerSizes);
+
+        this.createLayers(this.weights, this.biases);
+    }
+
+    createLayers(weights, biases) {
+
+        for (let i = 0; i < weights.length; i++) {
+
+            const weightsForLayer = weights[i];
+            const biasesForLayer = biases[i];
+
+            const currLayer = new Layer(weightsForLayer, biasesForLayer);
+            this.layers.push(currLayer);
+        }
+
+    }
+
+    createRandomBiases(layerSizes) {
+        let biases = [];
+        for (let i = 1; i < layerSizes.length; i++) {
+            const currNumberOfNeurons = layerSizes[i];
+
+            let biasesForLayer = [];
+
+            for (let j = 0; j < currNumberOfNeurons; j++) {
+                const randomValue = Math.random() * 2 - 1;
+                biasesForLayer.push(randomValue);
+            }
+
+            biases.push(biasesForLayer);
+        }
+
+        return biases;
+    }
+
+    createRandomWeights(layerSizes) {
+        let weights = [];
+        for (let i = 1; i < layerSizes.length; i++) {
+            const currNumberOfNeurons = layerSizes[i];
+            const previousNumberOfNeurons = layerSizes[i-1];
+
+            let weightsForLayer = [];
+
+            for (let j = 0; j < currNumberOfNeurons; j++) {
+                let weightsForNeuron = [];
+
+                for (let k = 0; k < previousNumberOfNeurons; k++) {
+                    const randomValue = Math.random() * 2 - 1;
+                    weightsForNeuron.push(randomValue);
+                }
+
+                weightsForLayer.push(weightsForNeuron);
+            }
+
+            weights.push(weightsForLayer);
+        }
+
+        return weights;
     }
 
     calculateOutputs(inputs) {
@@ -275,6 +336,7 @@ export class Neuron {
 
 
 }
+
 
 /*
 let inputs = [2, 1];

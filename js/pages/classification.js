@@ -1,23 +1,9 @@
 import { NeuralNetwork, NeuralNetworkControls, NeuralNetworkVisualization, Layer } from "../neuralNetwork.js";
 
 
-export function classification() {
-    const hiddenLayer = new Layer(
-        [[0, 0],
-        [0, 0],
-        [0, 0]
-        ],
-        [1, 1, 1]
-    );
+export function classificationPage() {
     
-    const outputLayer = new Layer(
-        [[1, 1, 1],
-        [2, 2, 2]
-        ],
-        [3, 3]
-    );
-    
-    const neuralNetwork = new NeuralNetwork([hiddenLayer, outputLayer]);
+    const neuralNetwork = new NeuralNetwork([2, 3, 2]);
 
     const neuralNetworkVisualization = new NeuralNetworkVisualization(neuralNetwork);
 
